@@ -1,4 +1,2 @@
-access.log
-.eslintrc
 node_modules
 .env
