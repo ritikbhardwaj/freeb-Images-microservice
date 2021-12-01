@@ -1,21 +1,38 @@
+/* This API is sort of a proxy between the main API
+ * and AWS S3.
+ *
+ * Responsibilities of this API:
+ * 	- Upload images to S3
+ *  - Get image streams from S3
+ *  - Delete images from S3
+ *
+ * The reason why this was kept separate and not merged with the main
+ * APi is that if any image processing is required at the backend it would
+ * be done here. Since image processing is CPU heavy, it can block the
+ * single thread that node.js runs on. Also in case of errors only this
+ * API would crash and the main API would keep handling requests.
+ *
+ * Author: Ritik Bhardwaj
+ */
+
 require('dotenv').config();
-const express = require('express');
-const app = express();
-const morgan = require('morgan');
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
-const fs = require('fs');
-const util = require('util');
-const S3 = require('aws-sdk/clients/s3');
-const unlinkFile = util.promisify(fs.unlink);
-const path = require('path');
-const PORT = 3000 || process.env.PORT;
+const express = require('express'),
+	app = express(),
+	morgan = require('morgan'),
+	multer = require('multer'),
+	upload = multer({ dest: 'uploads/' }),
+	fs = require('fs'),
+	util = require('util'),
+	S3 = require('aws-sdk/clients/s3'),
+	unlinkFile = util.promisify(fs.unlink),
+	path = require('path');
 
 //fetch the environment variables
-const bucketName = process.env.AWS_BUCKET_NAME;
-const region = process.env.AWS_BUCKET_REGION;
-const accessKeyId = process.env.AWS_ACCESS_KEY;
-const secretAccessKey = process.env.AWS_SECRET_KEY;
+const bucketName = process.env.AWS_BUCKET_NAME,
+	region = process.env.AWS_BUCKET_REGION,
+	accessKeyId = process.env.AWS_ACCESS_KEY,
+	secretAccessKey = process.env.AWS_SECRET_KEY,
+	PORT = 3000 || process.env.PORT;
 
 //init the s3 object
 const s3 = new S3({
@@ -36,6 +53,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 //routes
+
 //get the image stream
 app.get('/images/:key', async (req, res) => {
 	const downloadParams = {
@@ -70,6 +88,7 @@ app.post('/images', upload.single('image'), async (req, res) => {
 	const result = s3.upload(uploadParams).promise();
 	result
 		.then((data) => {
+			console.log('Upload Done');
 			res.status(200).json({ status: 200, type: 'OK', message: data });
 		})
 		.catch((err) => {
@@ -79,10 +98,6 @@ app.post('/images', upload.single('image'), async (req, res) => {
 				message: err,
 			});
 		});
-	//console.log(result);
-	//filter
-	//resize
-	//compress
 	await unlinkFile(path);
 });
 
@@ -95,6 +110,7 @@ app.delete('/images/:key', (req, res) => {
 	const result = s3.deleteObject(deleteParams).promise();
 	result
 		.then((data) => {
+			console.log('Delete done!');
 			return res
 				.status(200)
 				.json({ status: 200, type: 'OK', message: data });
