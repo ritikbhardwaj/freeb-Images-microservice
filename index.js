@@ -55,7 +55,7 @@ app.use(express.json());
 //routes
 
 //get the image stream
-app.get('/images/:key', async (req, res) => {
+app.get('api/s3/images/:key', async (req, res) => {
 	const downloadParams = {
 		Key: req.params.key,
 		Bucket: bucketName,
@@ -70,7 +70,7 @@ app.get('/images/:key', async (req, res) => {
 });
 
 //post image to the server
-app.post('/images', upload.single('image'), async (req, res) => {
+app.post('api/s3/images', upload.single('image'), async (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({
 			status: 400,
@@ -102,7 +102,7 @@ app.post('/images', upload.single('image'), async (req, res) => {
 });
 
 //delete a image with the id
-app.delete('/images/:key', (req, res) => {
+app.delete('api/s3/images/:key', (req, res) => {
 	const deleteParams = {
 		Bucket: bucketName,
 		Key: req.params.key,
