@@ -55,7 +55,7 @@ app.use(express.json());
 //routes
 
 //get the image stream
-app.get('api/s3/images/:key', async (req, res) => {
+app.get('/api/s3/images/:key', async (req, res) => {
 	const downloadParams = {
 		Key: req.params.key,
 		Bucket: bucketName,
@@ -70,7 +70,7 @@ app.get('api/s3/images/:key', async (req, res) => {
 });
 
 //post image to the server
-app.post('api/s3/images', upload.single('image'), async (req, res) => {
+app.post('/api/s3/images', upload.single('image'), async (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({
 			status: 400,
@@ -88,7 +88,6 @@ app.post('api/s3/images', upload.single('image'), async (req, res) => {
 	const result = s3.upload(uploadParams).promise();
 	result
 		.then((data) => {
-			console.log('Upload Done');
 			res.status(200).json({ status: 200, type: 'OK', message: data });
 		})
 		.catch((err) => {
@@ -102,7 +101,7 @@ app.post('api/s3/images', upload.single('image'), async (req, res) => {
 });
 
 //delete a image with the id
-app.delete('api/s3/images/:key', (req, res) => {
+app.delete('/api/s3/images/:key', (req, res) => {
 	const deleteParams = {
 		Bucket: bucketName,
 		Key: req.params.key,
@@ -110,7 +109,6 @@ app.delete('api/s3/images/:key', (req, res) => {
 	const result = s3.deleteObject(deleteParams).promise();
 	result
 		.then((data) => {
-			console.log('Delete done!');
 			return res
 				.status(200)
 				.json({ status: 200, type: 'OK', message: data });
@@ -125,5 +123,5 @@ app.delete('api/s3/images/:key', (req, res) => {
 });
 
 app.listen(PORT, () => {
-	console.log(`Image server listening on - ${PORT}`);
+	console.log(`Image API listening on - ${PORT}`);
 });
